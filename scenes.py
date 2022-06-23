@@ -11,7 +11,7 @@ class Scene:
     def __init__(self, *lights: Light, config: List[Command] = None):
         self._lights = {light.name: light for light in lights}
         self._config = config
-        self._logger = getLogger()
+        self._logger = getLogger(__name__)
         self._logger.info(f"Created scene with lights: {self._lights.keys()}")
 
     def apply_scene(self):
