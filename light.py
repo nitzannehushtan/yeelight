@@ -2,12 +2,14 @@ from logging import getLogger
 from typing import List
 
 from yeelight import Bulb, LightType, discover_bulbs
+from connection import Connection
 
 
 class Light:
     def __init__(self, name: str, ip: str):
         self.name = name
         self._light = Bulb(ip)
+        self._connection = Connection(ip)
         self._logger = getLogger()
 
     def turn_on(self, light_type: LightType = LightType.Main):
