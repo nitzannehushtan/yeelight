@@ -2,13 +2,18 @@ from logging import getLogger
 from typing import List
 
 from yeelight import Bulb, LightType, discover_bulbs
+from connection import Connection
 
 
 class Light:
     def __init__(self, name: str, ip: str):
         self.name = name
-        self._light = Bulb(ip)
-        self._logger = getLogger()
+        self.ip = ip
+        self._light = Bulb(self.ip)
+        self._logger = getLogger(__name__)
+
+    def get_connection(self) -> Connection:
+        return Connection(self.ip)
 
     def turn_on(self, light_type: LightType = LightType.Main):
         self._logger.info(f"Turning {self.name} {light_type} on")
@@ -25,6 +30,14 @@ class Light:
         if color:
             self._logger.info(f"Setting {self.name} color to: {color}")
             self._light.set_rgb(*color, light_type=light_type)
+
+    def set_moonlight(self, brightness: int = 1):
+        self._logger.info(f"Setting {self.name} to moonlight")
+        self.get_connection().send_command("set_scene", ["nightlight", brightness])
+
+    def set_main_light(self, color_temp: int = 4000):
+        self._logger.info(f"Setting {self.name} to main light")
+        self.get_connection().send_command("set_ct_abx", [color_temp, "smooth", 30])
 
     @classmethod
     def get_lights(cls) -> dict:
