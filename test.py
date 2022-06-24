@@ -18,12 +18,12 @@ class TestLight(TestCase):
 
     def test_brightness(self):
         self.light.turn_on()
-        self.light.configure(brightness=100)
+        self.light.set_brightness(100)
         assert Light.get_light_brightness(self.light_ip) == 100, \
             f"Brightness is {Light.get_light_brightness(self.light_ip)} instead of 100"
-        self.light.configure(brightness=50)
+        self.light.set_brightness(50)
         assert Light.get_light_brightness(self.light_ip) == 50, \
             f"Brightness is {Light.get_light_brightness(self.light_ip)} instead of 50"
-        self.light.configure(brightness=1)
+        self.light.set_brightness(1)
         assert Light.get_light_brightness(self.light_ip) == 1, \
             f"Brightness is {Light.get_light_brightness(self.light_ip)} instead of 1"
