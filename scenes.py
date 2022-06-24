@@ -8,7 +8,7 @@ from light import Light
 
 class Scene:
 
-    def __init__(self, *lights: Light, config: List[Command] = None):
+    def __init__(self, *lights: [Light], config: List[Command] = None):
         self._lights = {light.name: light for light in lights}
         self._config = config
         self._logger = getLogger(__name__)
@@ -38,9 +38,13 @@ class Scene:
         if command.command == "off":
             self._lights[command.light].turn_off(command.light_type)
         if command.command == "brightness":
-            self._lights[command.light].configure(brightness=command.param, light_type=command.light_type)
+            self._lights[command.light].set_brightness(command.param)
         if command.command == "color":
-            self._lights[command.light].configure(color=command.param, light_type=command.light_type)
+            self._lights[command.light].set_ambient_color(command.param)
+        if command.command == "main":
+            self._lights[command.light].set_main_light()
+        if command.command == "moon":
+            self._lights[command.light].set_moonlight()
 
 
 class Scenes:
@@ -70,8 +74,22 @@ class Scenes:
     reading = Scene(Light("living_room", LIVING_ROOM_LIGHT_IP), Light("bedroom", BEDROOM_LIGHT_IP))
     reading.configure_scene(
         [("living_room", "on"),
+         ("living_room", "main"),
          ("living_room", "brightness", "100"),
          ("bedroom", "on"),
+         ("bedroom", "main"),
          ("bedroom", "brightness", "100")
          ]
     )
+
+    sunset = Scene(Light("living_room", LIVING_ROOM_LIGHT_IP), Light("bedroom", BEDROOM_LIGHT_IP))
+    sunset.configure_scene(
+        [("living_room", "on"),
+         ("living_room", "main"),
+         ("living_room", "brightness", "1"),
+         ("bedroom", "on"),
+         ("bedroom", "main"),
+         ("bedroom", "brightness", "1")
+         ]
+    )
+

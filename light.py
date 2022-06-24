@@ -23,13 +23,13 @@ class Light:
         self._logger.info(f"Turning {self.name} {light_type} off")
         self._light.turn_off(light_type=light_type)
 
-    def configure(self, brightness: int = None, color: List[int] = None, light_type: LightType = LightType.Main):
-        if brightness:
-            self._logger.info(f"Setting {self.name} brightness to: {brightness}")
-            self._light.set_brightness(brightness, light_type=light_type)
-        if color:
-            self._logger.info(f"Setting {self.name} color to: {color}")
-            self._light.set_rgb(*color, light_type=light_type)
+    def set_brightness(self, brightness: int = 1):
+        self._logger.info(f"Setting {self.name} brightness to: {brightness}")
+        self._light.set_brightness(brightness)
+
+    def set_ambient_color(self, ambient_color: List[int] = None):
+        self._logger.info(f"Setting {self.name} ambient color to: {ambient_color}")
+        self._light.set_rgb(*ambient_color, light_type=LightType.Ambient)
 
     def set_moonlight(self, brightness: int = 1):
         self._logger.info(f"Setting {self.name} to moonlight")

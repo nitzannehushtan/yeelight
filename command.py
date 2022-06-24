@@ -17,13 +17,11 @@ class Command:
         """
         self.light = command[0]
         self.command = command[1]
-        if len(command) > 2:
-            self.param = self.parse_param(command[2])
+        self.param = self.parse_param(command[2]) if len(command) > 2 else None
+        self.light_type = None
+
         if len(command) > 3:
             self.light_type = LightType.Main if command[3] == "main" else LightType.Ambient
-        else:
-            self.param = None
-            self.light_type = None
 
     @staticmethod
     def parse_param(param: str) -> Union[int, str, List[int]]:
