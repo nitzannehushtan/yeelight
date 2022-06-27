@@ -1,21 +1,26 @@
 from logging import getLogger
 from typing import List, Tuple
 
-from command import Command
-from devices_ips import LIVING_ROOM_LIGHT_IP, BEDROOM_LIGHT_IP
+from command import Command, COMMANDS
 from light import Light
 
 
 class Scene:
 
-    def __init__(self, *lights: [Light], config: List[Command] = None):
-        self._lights = {light.name: light for light in lights}
-        self._config = config
+    def __init__(self, lights: List[Light] = None, config: List[Tuple[str]] = None):
+        self._lights = {light.name: light if light else None for light in lights} if lights else {}
         self._logger = getLogger(__name__)
-        self._logger.info(f"Created scene with lights: {self._lights.keys()}")
+        self._logger.info(f"Created scene with lights: {list(self._lights.keys())}")
+        self._config = None
+        if config:
+            self.configure_scene(config)
+        self._config_list = config
+
+    def add_light(self, light: Light):
+        self._lights[light.name] = light
 
     def apply_scene(self):
-        self._logger.info(f"Applying scene: {self._config}")
+        self._logger.info(f"Applying scene: {self._config_list}")
         for command in self._config:
             self.apply_command(command)
 
@@ -28,11 +33,14 @@ class Scene:
         """
         config_list = []
         for command in config:
-            config_list.append(Command(*command))
-        self._logger.info(f"Configured scene: {config_list}")
+            config_list.append(Command(command))
+        self._logger.info(f"Configured scene: {config}")
         self._config = config_list
+        self._config_list = config
 
     def apply_command(self, command: Command):
+        assert command.command in COMMANDS, f"Command {command.command} is not valid"
+        assert command.light in self._lights.keys(), f"Light {command.light} is not valid"
         if command.command == "on":
             self._lights[command.light].turn_on(command.light_type)
         if command.command == "off":
@@ -47,49 +55,75 @@ class Scene:
             self._lights[command.light].set_moonlight()
 
 
-class Scenes:
+def create_scene(lights: List[Light] = None, config: List[Tuple[str]] = None) -> Scene:
+    """
+    Create a scene with the given lights and config.
+    For a configured scene to be applied, use scene_object.apply_scene()
+    :param lights: list of Light objects. If None, a scene with no lights is created
+    :param config: list of tuples of strings, each tuple is a command to be applied to a light. If None, a scene with
+        no config is created. Light names of the command must be in the lights list.
 
-    out = Scene(Light("living_room", LIVING_ROOM_LIGHT_IP), Light("bedroom", BEDROOM_LIGHT_IP))
-    out.configure_scene([
+    :return: Scene object
+    """
+    return Scene(lights=lights, config=config)
+
+
+def create_and_apply_scene(lights: List[Light], config: List[Tuple[str]] = None) -> Scene:
+    """
+    Create a scene with the given lights and config, and apply it.
+    :param lights: list of Light objects. If None, a scene with no lights is created and therefore there will be no
+        effect.
+    :param config: list of tuples of strings, each tuple is a command to be applied to a light. If None, a scene with
+        no config is created and therefore there will be no effect. Light names of the command must be in the lights
+        list.
+    :return: Scene object
+    """
+    scene = create_scene(lights=lights, config=config)
+    scene.apply_scene()
+    return scene
+
+
+class Scenes:
+    """
+    Scene configurations class.
+    Usage:
+    scenes = Scenes(lights=[light_1, light_2], config=Scenes.movie)
+    scenes.apply_scene()
+    or
+    scene = create_and_apply_scene(lights=[light_1, light_2], config=Scenes.reading)
+    """
+    out = [
         ("living_room", "off"),
         ("bedroom", "off")
-    ])
+    ]
 
-    going_in = Scene(Light("living_room", LIVING_ROOM_LIGHT_IP), Light("bedroom", BEDROOM_LIGHT_IP))
-    going_in.configure_scene([
+    going_in = [
         ("living_room", "on"),
         ("bedroom", "on")
-    ])
+    ]
 
-    movie = Scene(Light("living_room", LIVING_ROOM_LIGHT_IP), Light("bedroom", BEDROOM_LIGHT_IP))
-    movie.configure_scene(
-        [("living_room", "off"),
-         ("living_room", "on", "-", "ambient"),
-         ("living_room", "brightness", "100", "ambient"),
-         ("living_room", "color", "(1,0,1)", "ambient"),
-         ("bedroom", "off")
-         ]
-    )
+    movie = [
+        ("living_room", "off"),
+        ("living_room", "on", "-", "ambient"),
+        ("living_room", "brightness", "100", "ambient"),
+        ("living_room", "color", "(1,0,1)", "ambient"),
+        ("bedroom", "off")
+    ]
 
-    reading = Scene(Light("living_room", LIVING_ROOM_LIGHT_IP), Light("bedroom", BEDROOM_LIGHT_IP))
-    reading.configure_scene(
-        [("living_room", "on"),
-         ("living_room", "main"),
-         ("living_room", "brightness", "100"),
-         ("bedroom", "on"),
-         ("bedroom", "main"),
-         ("bedroom", "brightness", "100")
-         ]
-    )
+    reading = [
+        ("living_room", "on"),
+        ("living_room", "main"),
+        ("living_room", "brightness", "100"),
+        ("bedroom", "on"),
+        ("bedroom", "main"),
+        ("bedroom", "brightness", "100")
+    ]
 
-    sunset = Scene(Light("living_room", LIVING_ROOM_LIGHT_IP), Light("bedroom", BEDROOM_LIGHT_IP))
-    sunset.configure_scene(
-        [("living_room", "on"),
-         ("living_room", "main"),
-         ("living_room", "brightness", "1"),
-         ("bedroom", "on"),
-         ("bedroom", "main"),
-         ("bedroom", "brightness", "1")
-         ]
-    )
-
+    low_main_light = [
+        ("living_room", "on"),
+        ("living_room", "main"),
+        ("living_room", "brightness", "1"),
+        ("bedroom", "on"),
+        ("bedroom", "main"),
+        ("bedroom", "brightness", "1")
+    ]
